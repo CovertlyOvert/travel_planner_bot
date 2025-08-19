@@ -1,7 +1,6 @@
-from dotenv import load_dotenv
-load_dotenv()
-import requests
 import os
+import requests
+
 
 class TravelTools:
     """A collection of tools for fetching travel-related information."""
@@ -19,25 +18,41 @@ class TravelTools:
         """
         api_key = os.getenv("OPENWEATHERMAP_API_KEY")
         if not api_key:
-            return {"status": "error", "error_message": "OpenWeatherMap API key not found."}
+            return {
+                "status": "error",
+                "error_message": "OpenWeatherMap API key not found.",
+            }
 
         try:
-            url = f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric"
-            response = requests.get(url)
+            url = (
+                f"https://api.openweathermap.org/data/2.5/weather"
+                f"?q={location}&appid={api_key}&units=metric"
+            )
+            response = requests.get(url, timeout=10)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
             data = response.json()
 
             if data.get("cod") != 200:
-                return {"status": "error", "error_message": f"Error fetching weather: {data.get('message', 'Unknown error')}"}
+                return {
+                    "status": "error",
+                    "error_message": f"Error fetching weather: {data.get('message', 'Unknown error')}",
+                }
 
-            weather_desc = data['weather'][0]['description']
-            temp = data['main']['temp']
+            weather_desc = data["weather"][0]["description"]
+            temp = data["main"]["temp"]
+
             return {
                 "status": "success",
-                "report": f"The current weather in {location} is {weather_desc} with a temperature of {temp}°C."
+                "report": (
+                    f"The current weather in {location} is {weather_desc} "
+                    f"with a temperature of {temp}°C."
+                ),
             }
         except requests.exceptions.RequestException as e:
-            return {"status": "error", "error_message": f"An error occurred while making the weather API request: {e}"}
+            return {
+                "status": "error",
+                "error_message": f"An error occurred while making the weather API request: {e}",
+            }
 
     @staticmethod
     def find_places_of_interest(location: str, category: str) -> dict:
@@ -53,33 +68,45 @@ class TravelTools:
         """
         api_key = os.getenv("GEOAPIFY_API_KEY")
         if not api_key:
-            return {"status": "error", "error_message": "Geoapify API key not found."}
-            
+            return {
+                "status": "error",
+                "error_message": "Geoapify API key not found.",
+            }
+
         try:
             # Step 1: Geocode the city name to get coordinates
             geocode_url = (
-                f"https://api.geoapify.com/v1/geocode/search?text={location}&limit=1&apiKey={api_key}"
+                f"https://api.geoapify.com/v1/geocode/search"
+                f"?text={location}&limit=1&apiKey={api_key}"
             )
-            geocode_resp = requests.get(geocode_url)
+            geocode_resp = requests.get(geocode_url, timeout=10)
             geocode_resp.raise_for_status()
             geocode_data = geocode_resp.json()
             features = geocode_data.get("features")
             if not features:
-                return {"status": "error", "error_message": f"Could not geocode location: {location}."}
+                return {
+                    "status": "error",
+                    "error_message": f"Could not geocode location: {location}.",
+                }
+
             coords = features[0]["geometry"]["coordinates"]
             lon, lat = coords
 
             # Step 2: Search for places near the coordinates
             url = (
-                f"https://api.geoapify.com/v2/places?categories={category}"
-                f"&filter=circle:{lon},{lat},5000&limit=5&apiKey={api_key}"
+                f"https://api.geoapify.com/v2/places"
+                f"?categories={category}&filter=circle:{lon},{lat},5000"
+                f"&limit=5&apiKey={api_key}"
             )
-            response = requests.get(url)
+            response = requests.get(url, timeout=10)
             response.raise_for_status()
             data = response.json()
 
             if not data.get("features"):
-                return {"status": "error", "error_message": f"No {category} found in {location}."}
+                return {
+                    "status": "error",
+                    "error_message": f"No {category} found in {location}.",
+                }
 
             places = []
             for place in data["features"]:
@@ -93,7 +120,13 @@ class TravelTools:
 
             return {
                 "status": "success",
-                "report": f"Found the following {category} in {location}:\n- " + "\n- ".join(places)
+                "report": (
+                    f"Found the following {category} in {location}:\n- "
+                    + "\n- ".join(places)
+                ),
             }
         except requests.exceptions.RequestException as e:
-            return {"status": "error", "error_message": f"An error occurred while making the places API request: {e}"}
+            return {
+                "status": "error",
+                "error_message": f"An error occurred while making the places API request: {e}",
+            }

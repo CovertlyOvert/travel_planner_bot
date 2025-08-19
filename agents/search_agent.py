@@ -1,12 +1,13 @@
-from crewai import Agent
+from google.adk.agents import Agent
 from tools.travel_tools import TravelTools
 
-def search_agent():
-    """Defines the Location Researcher Agent."""
-    return Agent(
-        role='Location Researcher',
-        goal='Find and provide detailed information about a destination, including attractions, restaurants, and local tips.',
-        backstory='You are a meticulous researcher with access to a vast database of travel information. You are skilled at finding and summarizing key details for a location.',
-        tools=[TravelTools.find_places_of_interest],
-        verbose=True
-    )
+search_agent = Agent(
+    name="search_agent",
+    model="gemini-2.0-flash",
+    description="Finds points of interest (POIs) in a city.",
+    instruction=(
+        "Use the find_places_of_interest tool to get top places for a city and category. "
+        "Return a compact list and short rationale."
+    ),
+    tools=[TravelTools.find_places_of_interest],  # functions auto-wrap as tools
+)

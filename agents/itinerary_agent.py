@@ -1,10 +1,14 @@
-from crewai import Agent
+from google.adk.agents import Agent
+from config import GENAI_MODEL_PRIMARY
 
-def itinerary_agent():
-    """Defines the Itinerary Planner Agent."""
-    return Agent(
-        role='Itinerary Planner',
-        goal='Create a detailed, day-by-day travel plan based on a destination, user interests, and information from other agents.',
-        backstory='You are an expert travel agent who crafts perfect itineraries. You are meticulous and ensure all details, from activities to weather, are accounted for.',
-        verbose=True
-    )
+itinerary_agent = Agent(
+    name="itinerary_agent",
+    model=GENAI_MODEL_PRIMARY,
+    description="Crafts a concise, day-by-day travel plan.",
+    instruction=(
+        "Given city and interests, draft a short, practical itinerary. "
+        "Prefer walkable clusters, timebox activities, and include brief tips. "
+        "Assume the user already has weather and POIs available if provided."
+    ),
+    tools=[],  # This agent formats & plans using provided context; no external tools required.
+)
